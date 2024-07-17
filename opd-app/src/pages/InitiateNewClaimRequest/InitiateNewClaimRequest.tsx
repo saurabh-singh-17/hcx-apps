@@ -13,7 +13,6 @@ import * as _ from "lodash";
 const InitiateNewClaimRequest = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [fileErrorMessage, setFileErrorMessage]: any = useState();
 
   const [amount, setAmount] = useState<string>("");
   const [serviceType, setServiceType] = useState<string>();
@@ -193,8 +192,10 @@ const InitiateNewClaimRequest = () => {
       setSubmitLoading(true);
       if (!_.isEmpty(selectedFiles)) {
         const response = await handleUpload(mobile, files);
-        const supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
-        addConsultationUrls(supportingDocs, consultationDocs)
+        var supportingDocs = generateSupportingDocuments(selectedFiles, response?.data);
+        if (urls != "{}") {
+          addConsultationUrls(supportingDocs, consultationDocs);
+        }
         _.set(initiateClaimRequestBody, "supportingDocuments", supportingDocs)
         if (response?.status === 200) {
           handleClaimRequest()
@@ -204,7 +205,9 @@ const InitiateNewClaimRequest = () => {
         }
       } else {
         toast.dismiss()
-        _.set(initiateClaimRequestBody, "supportingDocuments", addConsultationUrls([], consultationDocs));
+        if (urls != "{}") {
+          _.set(initiateClaimRequestBody, "supportingDocuments", addConsultationUrls([], consultationDocs));
+        }
         const response = await generateOutgoingRequest("claim/submit", initiateClaimRequestBody);
         if (response?.status === 200) {
           toast.success("Claim request initiated successfully!");
@@ -397,7 +400,7 @@ const InitiateNewClaimRequest = () => {
           <div className="mb-5 mt-4">
             {!submitLoading ? (
               <button
-                disabled={amount === "" || fileErrorMessage}
+                disabled={amount === ""}
                 onClick={() => {
                   submitClaim();
                 }}
